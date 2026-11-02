@@ -1,8 +1,13 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 function envValue(name: string) {
-  const file = readFileSync(path.join(process.cwd(), ".env.local"), "utf8");
+  // Hosted environments (e.g. Netlify) provide variables directly; .env.local is local-only.
+  if (process.env[name]) return process.env[name];
+
+  const envFile = path.join(process.cwd(), ".env.local");
+  if (!existsSync(envFile)) return undefined;
+  const file = readFileSync(envFile, "utf8");
 
   for (const line of file.split(/\r?\n/)) {
     const trimmed = line.trim();
@@ -27,7 +32,7 @@ function envValue(name: string) {
 export function databaseUrl() {
   const raw = envValue("DATABASE_URL");
   if (!raw) {
-    throw new Error("Set DATABASE_URL in .env.local.");
+    throw new Error("Set DATABASE_URL in the environment or .env.local.");
   }
 
   const url = new URL(raw);
