@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model CloudReading {
+  id                String      @id @default(cuid())
+  requestedDateTime String      @unique
+  timestamp         DateTime
+  updateTimestamp   DateTime
+  validFrom         DateTime
+  validTo           DateTime
+  clampedToLatest   Boolean
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  areas             CloudArea[]
+}
+
+model CloudArea {
+  id        String       @id @default(cuid())
+  readingId String
+  reading   CloudReading @relation(fields: [readingId], references: [id], onDelete: Cascade)
+  name      String
+  latitude  Float
+  longitude Float
+  forecast  String
+  coverage  Float
+  kind      String
+
+  @@unique([readingId, name])
+}
